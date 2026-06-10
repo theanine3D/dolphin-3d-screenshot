@@ -51,6 +51,7 @@
 #include "VideoCommon/EFBInterface.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/FrameDumper.h"
+#include "VideoCommon/GeometryDumper.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/GraphicsModSystem/Runtime/GraphicsModManager.h"
@@ -324,6 +325,7 @@ bool VideoBackendBase::InitializeShared(std::unique_ptr<AbstractGfx> gfx,
 
   g_presenter = std::make_unique<VideoCommon::Presenter>();
   g_frame_dumper = std::make_unique<FrameDumper>();
+  g_geometry_dumper = std::make_unique<GeometryDumper>();
   g_framebuffer_manager = std::make_unique<FramebufferManager>();
   g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
   g_graphics_mod_manager = std::make_unique<GraphicsModManager>();
@@ -375,6 +377,7 @@ void VideoBackendBase::ShutdownShared()
   system.GetCustomResourceManager().Shutdown();
 
   g_frame_dumper.reset();
+  g_geometry_dumper.reset();
   g_presenter.reset();
 
   if (g_shader_cache)

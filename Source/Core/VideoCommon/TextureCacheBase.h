@@ -285,6 +285,9 @@ public:
                               MathUtil::Rectangle<int>* display_rect);
 
   virtual void BindTextures(BitSet32 used_textures, const std::array<SamplerState, 8>& samplers);
+
+  // Returns the texture entry already bound for the given stage (populated before BindTextures).
+  const RcTcacheEntry& GetBoundTexture(u32 stage) const { return m_bound_textures[stage]; }
   void CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 width, u32 height,
                                  u32 dstStride, bool is_depth_copy,
                                  const MathUtil::Rectangle<int>& srcRect, bool isIntensity,

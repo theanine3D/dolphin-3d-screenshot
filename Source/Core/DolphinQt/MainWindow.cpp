@@ -536,6 +536,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::Fullscreen, this, &MainWindow::FullScreen);
   connect(m_menu_bar, &MenuBar::FrameAdvance, this, &MainWindow::FrameAdvance);
   connect(m_menu_bar, &MenuBar::Screenshot, this, &MainWindow::ScreenShot);
+  connect(m_menu_bar, &MenuBar::Screenshot3D, this, &MainWindow::ScreenShot3D);
   connect(m_menu_bar, &MenuBar::StateLoad, this, &MainWindow::StateLoad);
   connect(m_menu_bar, &MenuBar::StateSave, this, &MainWindow::StateSave);
   connect(m_menu_bar, &MenuBar::StateLoadSlot, this, &MainWindow::StateLoadSlot);
@@ -622,6 +623,7 @@ void MainWindow::ConnectHotkeys()
   connect(m_hotkey_scheduler, &HotkeyScheduler::StopHotkey, this, &MainWindow::RequestStop);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ResetHotkey, this, &MainWindow::Reset);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ScreenShotHotkey, this, &MainWindow::ScreenShot);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::ScreenShot3DHotkey, this, &MainWindow::ScreenShot3D);
   connect(m_hotkey_scheduler, &HotkeyScheduler::FullScreenHotkey, this, &MainWindow::FullScreen);
 
   connect(m_hotkey_scheduler, &HotkeyScheduler::StateLoadSlot, this, &MainWindow::StateLoadSlotAt);
@@ -1122,6 +1124,11 @@ void MainWindow::UnlockCursor()
 void MainWindow::ScreenShot()
 {
   Core::SaveScreenShot();
+}
+
+void MainWindow::ScreenShot3D()
+{
+  Core::Save3DScreenShot();
 }
 
 void MainWindow::ScanForSecondDiscAndStartGame(const UICommon::GameFile& game,

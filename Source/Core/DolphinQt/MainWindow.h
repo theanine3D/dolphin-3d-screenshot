@@ -133,6 +133,7 @@ private:
   void FullScreen();
   void UnlockCursor();
   void ScreenShot();
+  void ScreenShot3D();
 
   void CreateComponents();
 

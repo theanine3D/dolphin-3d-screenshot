@@ -30,6 +30,7 @@ constexpr std::array<const char*, NUM_HOTKEYS> s_hotkey_labels{{
     _trans("Reset"),
     _trans("Toggle Fullscreen"),
     _trans("Take Screenshot"),
+    _trans("Take 3D Screenshot"),
     _trans("Exit"),
     _trans("Unlock Cursor"),
     _trans("Center Mouse"),

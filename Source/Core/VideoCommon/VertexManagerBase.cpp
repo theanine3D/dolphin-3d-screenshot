@@ -36,6 +36,7 @@
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/GeometryDumper.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -641,6 +642,31 @@ void VertexManagerBase::Flush()
     // Palette application does not use vertices, only a full-screen quad, so this is okay.
     // Same with GPU texture decoding, which uses compute shaders.
     g_texture_cache->BindTextures(used_textures, samplers);
+
+    // 3D screenshot capture – record geometry before CommitBuffer() uploads it to GPU.
+    if (g_geometry_dumper && g_geometry_dumper->IsCapturing())
+    {
+      const NativeVertexFormat* fmt = VertexLoaderManager::GetCurrentVertexFormat();
+      if (fmt)
+      {
+        // m_base_buffer_pointer is the start of the *entire* GPU streaming ring buffer, not the
+        // start of this batch. m_cur_buffer_pointer has been advanced by the vertex loader past
+        // all N vertices of the current batch, so the batch starts at cur - N*stride.
+        const u32 vtx_stride = fmt->GetVertexStride();
+        const u32 num_verts = m_index_generator.GetNumVerts();
+        const u8* batch_vtx_start =
+            m_cur_buffer_pointer - static_cast<ptrdiff_t>(num_verts) * vtx_stride;
+
+        std::array<RcTcacheEntry, 8> tex_entries;
+        for (const u32 i : used_textures)
+          tex_entries[i] = g_texture_cache->GetBoundTexture(i);
+
+        g_geometry_dumper->CaptureDrawCall(
+            batch_vtx_start, num_verts,
+            vtx_stride, fmt->GetVertexDeclaration(),
+            m_index_generator.GetBaseIndexPtr(), num_indices, tex_entries, used_textures);
+      }
+    }
 
     if (!skip)
     {

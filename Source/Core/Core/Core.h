@@ -150,6 +150,7 @@ State GetState(Core::System& system);
 
 void SaveScreenShot();
 void SaveScreenShot(std::string_view name);
+void Save3DScreenShot();
 
 // This displays messages in a user-visible way.
 void DisplayMessage(std::string message, int time_in_ms);

@@ -86,6 +86,7 @@
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/FrameDumper.h"
+#include "VideoCommon/GeometryDumper.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PerformanceMetrics.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -775,6 +776,12 @@ void SaveScreenShot()
   std::optional<std::string> name = GenerateScreenshotName();
   if (name)
     g_frame_dumper->SaveScreenshot(*name);
+}
+
+void Save3DScreenShot()
+{
+  if (g_geometry_dumper)
+    g_geometry_dumper->RequestCapture();
 }
 
 void SaveScreenShot(std::string_view name)

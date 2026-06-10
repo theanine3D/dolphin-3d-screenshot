@@ -70,6 +70,8 @@ add_library(videocommon
   FrameDumpFFMpeg.h
   FreeLookCamera.cpp
   FreeLookCamera.h
+  GeometryDumper.cpp
+  GeometryDumper.h
   GeometryShaderGen.cpp
   GeometryShaderGen.h
   GeometryShaderManager.cpp

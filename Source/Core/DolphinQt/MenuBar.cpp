@@ -127,6 +127,7 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   m_reset_action->setEnabled(running);
   m_fullscreen_action->setEnabled(running);
   m_screenshot_action->setEnabled(running);
+  m_screenshot_3d_action->setEnabled(running);
   m_state_save_menu->setEnabled(running);
 
   const bool hardcore = AchievementManager::GetInstance().IsHardcoreModeActive();
@@ -394,6 +395,8 @@ void MenuBar::AddEmulationMenu()
   m_frame_advance_action = emu_menu->addAction(tr("&Frame Advance"), this, &MenuBar::FrameAdvance);
 
   m_screenshot_action = emu_menu->addAction(tr("Take Screenshot"), this, &MenuBar::Screenshot);
+  m_screenshot_3d_action =
+      emu_menu->addAction(tr("Take 3D Screenshot"), this, &MenuBar::Screenshot3D);
 
   emu_menu->addSeparator();
 
