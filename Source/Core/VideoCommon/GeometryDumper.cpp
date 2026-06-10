@@ -142,15 +142,17 @@ void GeometryDumper::CaptureDrawCall(const u8* vtx_data, u32 num_verts, u32 stri
   dc.num_verts = num_verts;
   dc.has_normals = decl.normals[0].enable;
   dc.has_uvs = decl.texcoords[0].enable;
-  dc.has_colors = decl.colors[0].enable;
+  for (int ci = 0; ci < 2; ++ci)
+    dc.has_colors[ci] = decl.colors[ci].enable;
 
   dc.positions.reserve(num_verts * 3);
   if (dc.has_normals)
     dc.normals.reserve(num_verts * 3);
   if (dc.has_uvs)
     dc.uvs.reserve(num_verts * 2);
-  if (dc.has_colors)
-    dc.colors.reserve(num_verts * 4);
+  for (int ci = 0; ci < 2; ++ci)
+    if (dc.has_colors[ci])
+      dc.colors[ci].reserve(num_verts * 4);
 
   const AttributeFormat& pos_fmt = decl.position;
   const u32 pos_elem_bytes = GetComponentBytes(pos_fmt.type);
@@ -211,16 +213,18 @@ void GeometryDumper::CaptureDrawCall(const u8* vtx_data, u32 num_verts, u32 stri
       dc.uvs.push_back(ComponentToFloat(p + 1 * ue, ufmt.type, false));
     }
 
-    // Color0 – RGBA u8 in Dolphin's native format.
-    if (dc.has_colors)
+    // Color channels – GX supports 2 (COLOR0/COLOR1); capture both if present.
+    for (int ci = 0; ci < 2; ++ci)
     {
-      const AttributeFormat& cfmt = decl.colors[0];
+      if (!dc.has_colors[ci])
+        continue;
+      const AttributeFormat& cfmt = decl.colors[ci];
       const u8* p = vtx + cfmt.offset;
       const u32 ce = GetComponentBytes(cfmt.type);
       for (int c = 0; c < 4; ++c)
       {
         const float cf = ComponentToFloat(p + c * ce, cfmt.type, false);
-        dc.colors.push_back(static_cast<u8>(std::clamp(cf, 0.0f, 255.0f)));
+        dc.colors[ci].push_back(static_cast<u8>(std::clamp(cf, 0.0f, 255.0f)));
       }
     }
   }
@@ -555,14 +559,16 @@ void GeometryDumper::WriteGltf(const std::string& output_dir)
       prim.attributes["TEXCOORD_0"] = acc_idx;
     }
 
-    // ---- COLOR_0 (normalized u8 → [0,1]) ----
-    if (dc.has_colors && !dc.colors.empty())
+    // ---- COLOR_0 / COLOR_1 (normalized u8 RGBA → [0,1]) ----
+    for (int ci = 0; ci < 2; ++ci)
     {
+      if (!dc.has_colors[ci] || dc.colors[ci].empty())
+        continue;
       const int acc_idx =
-          AddAccessor(dc.colors.data(), dc.colors.size() * sizeof(u8), 1,
+          AddAccessor(dc.colors[ci].data(), dc.colors[ci].size() * sizeof(u8), 1,
                       TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE, TINYGLTF_TYPE_VEC4, dc.num_verts,
                       /*normalized=*/true);
-      prim.attributes["COLOR_0"] = acc_idx;
+      prim.attributes[fmt::format("COLOR_{}", ci)] = acc_idx;
     }
 
     // ---- INDICES (u16) ----

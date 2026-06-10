@@ -56,12 +56,12 @@ private:
     std::vector<float> positions;  // float3 per vertex
     std::vector<float> normals;    // float3 per vertex (may be empty)
     std::vector<float> uvs;        // float2 per vertex, first UV set (may be empty)
-    std::vector<u8> colors;        // u8 RGBA per vertex (may be empty)
+    std::array<std::vector<u8>, 2> colors;  // u8 RGBA per vertex per channel (may be empty)
     std::vector<u16> indices;
     u32 num_verts = 0;
     bool has_normals = false;
     bool has_uvs = false;
-    bool has_colors = false;
+    std::array<bool, 2> has_colors{};
     // Identifies the texture used. 0 means no texture.
     u64 tex_hash = 0;
     // Shared ownership keeps the TCacheEntry alive across the frame boundary.
