@@ -1,6 +1,6 @@
 This is a fork of Dolphin that adds a "3D Screenshot" feature which captures 3D geometry currently being rendered on the screen, along with any textures.
 
-Captures are saved in .gltf format, in a "3D" subfolder inside the "ScreenShots" folder where Dolphin saves screenshots by default. For example, on Windows:
+Captures are saved in .gltf format, to a "3D" subfolder inside the "ScreenShots" folder where Dolphin saves screenshots by default. For example, on Windows:
 
 `C:\Users\[YOUR USERNAME]\Documents\Dolphin Emulator\ScreenShots\[GAME ID]\3D\`
 
