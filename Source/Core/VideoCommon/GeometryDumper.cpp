@@ -284,15 +284,18 @@ void GeometryDumper::CaptureDrawCall(const u8* vtx_data, u32 num_verts, u32 stri
     // else: line or point draw call (num_indices % 3 != 0) — intentionally skipped.
   }
 
-  // Use the first active texture slot as the material texture.
-  // Copy the shared_ptr so the TCacheEntry stays alive across the frame boundary.
-  for (const u32 i : used_tex)
+  // Collect all active textures as candidates for material selection.
+  // Non-EFB-copies (regular ROM/RAM textures) go first; EFB copies (dynamically rendered
+  // shadow maps, light maps, reflections) are appended after.
+  // FinalizeCapture() will pick the best candidate using a whole-frame frequency analysis
+  // so that globally-reused lighting textures lose out to mesh-specific albedo textures.
+  for (int pass = 0; pass < 2; ++pass)
   {
-    if (tex_entries[i])
+    for (const u32 i : used_tex)
     {
-      dc.tex_hash = tex_entries[i]->hash;
-      dc.tex_entry = tex_entries[i];
-      break;
+      const RcTcacheEntry& e = tex_entries[i];
+      if (e && (e->IsCopy() == (pass == 1)))
+        dc.tex_candidates.push_back(e);
     }
   }
 
@@ -333,6 +336,52 @@ void GeometryDumper::FinalizeCapture()
   {
     INFO_LOG_FMT(VIDEO, "GeometryDumper: no geometry captured this frame");
     return;
+  }
+
+  // --- Texture frequency analysis ---
+  // Count how many draw calls each texture hash appears in (across all candidates).
+  // Textures used by many draws (shadow maps, light maps, global palettes) get a high score
+  // and are deprioritised; mesh-specific albedo textures have a low score and are preferred.
+  // EFB copies are dynamic render targets whose hashes change every frame, so they naturally
+  // get a low frequency count — we bump them to a very high value so they lose to ROM textures.
+  std::unordered_map<u64, u32> hash_freq;
+  for (const CapturedDraw& dc : m_draws)
+    for (const RcTcacheEntry& e : dc.tex_candidates)
+      hash_freq[e->hash]++;
+
+  constexpr u32 kEfbCopyPenalty = 0xFFFFFFFFu;
+  for (auto& [hash, freq] : hash_freq)
+  {
+    // Find any entry with this hash to check the IsCopy flag.
+    for (const CapturedDraw& dc : m_draws)
+      for (const RcTcacheEntry& e : dc.tex_candidates)
+        if (e->hash == hash && e->IsCopy())
+        {
+          freq = kEfbCopyPenalty;
+          goto next_hash;
+        }
+    next_hash:;
+  }
+
+  // For each draw call pick the candidate with the lowest frequency (most unique to this mesh).
+  for (CapturedDraw& dc : m_draws)
+  {
+    const RcTcacheEntry* best = nullptr;
+    u32 best_freq = std::numeric_limits<u32>::max();
+    for (const RcTcacheEntry& e : dc.tex_candidates)
+    {
+      const u32 f = hash_freq.count(e->hash) ? hash_freq[e->hash] : 0;
+      if (f < best_freq)
+      {
+        best_freq = f;
+        best = &e;
+      }
+    }
+    if (best)
+    {
+      dc.tex_hash = (*best)->hash;
+      dc.tex_entry = *best;
+    }
   }
 
   const std::string output_dir = GenerateOutputDir();

@@ -62,9 +62,11 @@ private:
     bool has_normals = false;
     bool has_uvs = false;
     std::array<bool, 2> has_colors{};
-    // Identifies the texture used. 0 means no texture.
+    // All non-null active textures for this draw call, non-EFB-copies first then EFB copies.
+    // Populated at capture time; FinalizeCapture() picks the best one and stores it below.
+    std::vector<RcTcacheEntry> tex_candidates;
+    // Selected texture (set by FinalizeCapture, used by WriteGltf). 0 = no texture.
     u64 tex_hash = 0;
-    // Shared ownership keeps the TCacheEntry alive across the frame boundary.
     RcTcacheEntry tex_entry;
   };
 
